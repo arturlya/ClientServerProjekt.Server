@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/Projektframework AOS-KNB.iml" filepath="$PROJECT_DIR$/Projektframework AOS-KNB.iml" />
+      <module fileurl="file://$PROJECT_DIR$/ClientServerProjekt.Server.iml" filepath="$PROJECT_DIR$/ClientServerProjekt.Server.iml" />
     </modules>
   </component>
 </project>
