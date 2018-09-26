@@ -2,20 +2,20 @@ package model;
 
 import model.abitur.netz.Client;
 import model.abitur.netz.Server;
+
 /**
  * Klasse des Servers zum TicTacToe spielen.
  */
 public class TicTacToeServer extends Server {
+
     /** Anzahl der Clients auf dem Server*/
-
     int numberOfClients;
+
     /** Boolische Werte, die angeben, ob ein Spieler gewonnen hat oder Spieler 1 am Zug ist.*/
-
     boolean player1turn,playerWon;
+
     /** Das Spielfeld, das in einem 2-Dimensionalen Array gespeichert wird*/
-
     Field[][] map;
-
 
     /**
      * Konstruktor der Klasse TicTacToeServer.
@@ -34,6 +34,7 @@ public class TicTacToeServer extends Server {
 
         System.out.println(getMapInformation());
     }
+
 
     /**
      * Aktion des Servers bei Beitritt eines weiteren Clients.
@@ -68,6 +69,7 @@ public class TicTacToeServer extends Server {
                 break;
         }
     }
+
     /**
      * Aktion des Servers bei einer Nachricht.
      *
@@ -99,7 +101,7 @@ public class TicTacToeServer extends Server {
                 }
             }
         }
-        send(pClientIP,pClientPort,"UPDATE"+getMapInformation());
+        sendToAll("UPDATE"+getMapInformation());
         for(int i=0;i<map.length && !playerWon;i++){
             for(int j=0;j<map[i].length && !playerWon;j++){
                 if((map[i][0].getValue()==1 && map[i][1].getValue()==1 && map[i][2].getValue()==1)){
@@ -113,13 +115,13 @@ public class TicTacToeServer extends Server {
                     playerWon = true;
 
                 }
-                if(map[0][0].getValue()==1 && map[1][1].getValue() == 1 && map[2][2].getValue() == 2){
+                if(map[0][0].getValue()==1 && map[1][1].getValue() == 1 && map[2][2].getValue() == 1){
                     sendToAll("WIN1");
                     sendToAll("TEXTSpieler 1 hat gewonnen!");
                     playerWon = true;
 
                 }
-                if(map[0][2].getValue() == 1 && map[1][1].getValue() == 1 && map[2][0].getValue() == 2){
+                if(map[0][2].getValue() == 1 && map[1][1].getValue() == 1 && map[2][0].getValue() == 1){
                     sendToAll("WIN1");
                     sendToAll("TEXTSpieler 1 hat gewonnen!");
                     playerWon = true;
@@ -150,7 +152,8 @@ public class TicTacToeServer extends Server {
 
                 }
             }
-        }    }
+        }
+    }
 
     /**
      * Aktion des Servers, wenn ein Client die Sitzung verlässt.
@@ -171,6 +174,7 @@ public class TicTacToeServer extends Server {
                 sendToAll("TEXTWarte auf Spieler");
         }
     }
+
     /**
      * Zufällige Vergabe des ersten Spielzuges.
      */
@@ -184,6 +188,7 @@ public class TicTacToeServer extends Server {
             }
         }
     }
+
     /**
      * Erstellung eines leeren Spielfeldes.
      */
@@ -194,6 +199,7 @@ public class TicTacToeServer extends Server {
             }
         }
     }
+
 
     /**
      * Gibt das Spielfeld in Form eines Strings zurück.
