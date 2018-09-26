@@ -8,13 +8,16 @@ import model.abitur.netz.Server;
 public class TicTacToeServer extends Server {
 
     /** Anzahl der Clients auf dem Server*/
-    int numberOfClients;
+    private int numberOfClients;
+
+    /** Anzahl der Clients, die eine neue Runde spielen wollen*/
+    private int restartVote;
 
     /** Boolische Werte, die angeben, ob das Spiel vorbei ist oder Spieler 1 am Zug ist.*/
-    boolean player1turn, gameOver;
+    private boolean player1turn, gameOver;
 
     /** Das Spielfeld, das in einem 2-Dimensionalen Array gespeichert wird*/
-    Field[][] map;
+    private Field[][] map;
 
     /**
      * Konstruktor der Klasse TicTacToeServer.
@@ -25,6 +28,7 @@ public class TicTacToeServer extends Server {
     public TicTacToeServer(int port){
         super(port);
         System.out.println("running Server");
+        restartVote = 0;
         numberOfClients =0;
         gameOver = false;
         map = new Field[3][3];
@@ -52,7 +56,7 @@ public class TicTacToeServer extends Server {
                 send(pClientIP,pClientPort,"SPIELER2");
                 firstTurn();
                 sendToAll("TEXTSpiel startet");
-                if(player1turn == true){
+                if(player1turn){
                     sendToAll("TEXTSpieler 1 startet");
                     sendToAll("KREIS");
                 }else{
@@ -97,13 +101,38 @@ public class TicTacToeServer extends Server {
                     }
                 }
             }
+        }else if(pMessage.contains("RESTART")){
+            restartVote++;
+            switch (restartVote){
+                case 1:
+                    sendToAll("TEXTWarte auf Spieler(1 verbleibend)");
+                    break;
+                case 2:
+                    sendToAll("TEXTStarte neue Runde");
+                    gameOver = false;
+                    createMap();
+                    firstTurn();
+                    if(player1turn == true){
+                        sendToAll("TEXTSpieler 1 startet");
+                        sendToAll("KREIS");
+                    }else{
+                        sendToAll("TEXTSpieler 2 startet");
+                        sendToAll("KREUZ");
+                    }
+                    restartVote = 0;
+                    break;
+            }
         }
         sendToAll("UPDATE"+getMapInformation());
         calculateWinner();
 
     }
 
-    public void calculateWinner(){
+    /**
+     * Berechnet, ob ein und welcher Spieler gewonnen hat.
+     * Sendet das Ergebnis an alle Clients.
+     */
+    private void calculateWinner(){
         for(int i = 0; i<map.length && !gameOver; i++) {
             for (int j = 0; j < map[i].length && !gameOver; j++) {
                 if ((map[i][0].getValue() == 1 && map[i][1].getValue() == 1 && map[i][2].getValue() == 1)) {
@@ -153,6 +182,11 @@ public class TicTacToeServer extends Server {
         }
     }
 
+    /**
+     * Prüft die Belegung des Feldes.
+     *
+     * @return Gibt zurück, ob jedes Feld bereits belegt ist.
+     */
     private boolean isEveryFieldFilled(){
         boolean bool = true;
         int i=0;
