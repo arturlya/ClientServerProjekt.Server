@@ -1,6 +1,5 @@
 package model;
 
-import model.abitur.netz.Client;
 import model.abitur.netz.Server;
 
 /**
@@ -11,8 +10,8 @@ public class TicTacToeServer extends Server {
     /** Anzahl der Clients auf dem Server*/
     int numberOfClients;
 
-    /** Boolische Werte, die angeben, ob ein Spieler gewonnen hat oder Spieler 1 am Zug ist.*/
-    boolean player1turn,playerWon;
+    /** Boolische Werte, die angeben, ob das Spiel vorbei ist oder Spieler 1 am Zug ist.*/
+    boolean player1turn, gameOver;
 
     /** Das Spielfeld, das in einem 2-Dimensionalen Array gespeichert wird*/
     Field[][] map;
@@ -27,12 +26,10 @@ public class TicTacToeServer extends Server {
         super(port);
         System.out.println("running Server");
         numberOfClients =0;
-        playerWon = false;
+        gameOver = false;
         map = new Field[3][3];
         createMap();
 
-
-        System.out.println(getMapInformation());
     }
 
 
@@ -102,57 +99,75 @@ public class TicTacToeServer extends Server {
             }
         }
         sendToAll("UPDATE"+getMapInformation());
-        for(int i=0;i<map.length && !playerWon;i++){
-            for(int j=0;j<map[i].length && !playerWon;j++){
-                if((map[i][0].getValue()==1 && map[i][1].getValue()==1 && map[i][2].getValue()==1)){
+        calculateWinner();
+
+    }
+
+    public void calculateWinner(){
+        for(int i = 0; i<map.length && !gameOver; i++) {
+            for (int j = 0; j < map[i].length && !gameOver; j++) {
+                if ((map[i][0].getValue() == 1 && map[i][1].getValue() == 1 && map[i][2].getValue() == 1)) {
                     sendToAll("WIN1");
                     sendToAll("TEXTSpieler 1 hat gewonnen!");
-                    playerWon = true;
-                }
-                if((map[0][j].getValue()==1 && map[1][j].getValue()==1 && map[2][j].getValue()==1)){
+                    gameOver = true;
+                }else if ((map[0][j].getValue() == 1 && map[1][j].getValue() == 1 && map[2][j].getValue() == 1)) {
                     sendToAll("WIN1");
                     sendToAll("TEXTSpieler 1 hat gewonnen!");
-                    playerWon = true;
+                    gameOver = true;
 
-                }
-                if(map[0][0].getValue()==1 && map[1][1].getValue() == 1 && map[2][2].getValue() == 1){
+                }else if (map[0][0].getValue() == 1 && map[1][1].getValue() == 1 && map[2][2].getValue() == 1) {
                     sendToAll("WIN1");
                     sendToAll("TEXTSpieler 1 hat gewonnen!");
-                    playerWon = true;
+                    gameOver = true;
 
-                }
-                if(map[0][2].getValue() == 1 && map[1][1].getValue() == 1 && map[2][0].getValue() == 1){
+                }else if (map[0][2].getValue() == 1 && map[1][1].getValue() == 1 && map[2][0].getValue() == 1) {
                     sendToAll("WIN1");
                     sendToAll("TEXTSpieler 1 hat gewonnen!");
-                    playerWon = true;
+                    gameOver = true;
 
-                }
-                if((map[i][0].getValue()==2 && map[i][1].getValue()==2 && map[i][2].getValue()==2)){
+                }else if ((map[i][0].getValue() == 2 && map[i][1].getValue() == 2 && map[i][2].getValue() == 2)) {
                     sendToAll("WIN2");
                     sendToAll("TEXTSpieler 2 hat gewonnen!");
-                    playerWon = true;
+                    gameOver = true;
 
-                }
-                if((map[0][j].getValue()==2 && map[1][j].getValue()==2 && map[2][j].getValue()==2)){
+                }else if ((map[0][j].getValue() == 2 && map[1][j].getValue() == 2 && map[2][j].getValue() == 2)) {
                     sendToAll("WIN2");
                     sendToAll("TEXTSpieler 2 hat gewonnen!");
-                    playerWon = true;
+                    gameOver = true;
 
-                }
-                if(map[0][0].getValue()==2 && map[1][1].getValue() == 2 && map[2][2].getValue() == 2){
+                }else if (map[0][0].getValue() == 2 && map[1][1].getValue() == 2 && map[2][2].getValue() == 2) {
                     sendToAll("WIN2");
                     sendToAll("TEXTSpieler 2 hat gewonnen!");
-                    playerWon = true;
+                    gameOver = true;
 
-                }
-                if(map[0][2].getValue() == 2 && map[1][1].getValue() == 2 && map[2][0].getValue() == 2){
+                }else if (map[0][2].getValue() == 2 && map[1][1].getValue() == 2 && map[2][0].getValue() == 2) {
                     sendToAll("WIN2");
                     sendToAll("TEXTSpieler 2 hat gewonnen!");
-                    playerWon = true;
-
+                    gameOver = true;
+                }else if(isEveryFieldFilled()){
+                    sendToAll("WIN0");
+                    sendToAll("TEXTKein Spieler hat gewonnen!");
+                    gameOver = true;
                 }
             }
         }
+    }
+
+    private boolean isEveryFieldFilled(){
+        boolean bool = true;
+        int i=0;
+        while(i<3){
+            int j=0;
+            while(j<3) {
+                if (map[i][j].isEmpty()) {
+                    bool = false;
+                    return bool;
+                }
+                j++;
+            }
+            i++;
+        }
+        return bool;
     }
 
     /**

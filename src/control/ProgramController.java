@@ -29,7 +29,7 @@ public class ProgramController {
      * Diese Methode wird genau ein mal nach Programmstart aufgerufen.
      */
     public void startProgram(){
-        TicTacToeServer server = new TicTacToeServer(2796);
+        //*TicTacToeServer server = new TicTacToeServer(2796);
     }
 
     /**

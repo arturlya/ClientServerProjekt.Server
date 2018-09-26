@@ -1,6 +1,7 @@
 package control.framework;
 
 import control.Config;
+import model.TicTacToeServer;
 import view.framework.DrawFrame;
 import java.awt.*;
 
@@ -51,11 +52,13 @@ public class MainController {
         x = x - Config.WINDOW_WIDTH / 2;
         y = y - Config.WINDOW_HEIGHT / 2;
         // Erzeuge ein neues Fenster zum Zeichnen
-        DrawFrame drawFrame = new DrawFrame(Config.WINDOW_TITLE, x, y, Config.WINDOW_WIDTH, Config.WINDOW_HEIGHT);
-        drawFrame.setResizable(false);
+       // DrawFrame drawFrame = new DrawFrame(Config.WINDOW_TITLE, x, y, Config.WINDOW_WIDTH, Config.WINDOW_HEIGHT);
+        //drawFrame.setResizable(false);
         // Übergibt den weiteren Programmfluss an das neue Objekt der Klasse UIController
-        if ( Config.INFO_MESSAGES) System.out.println("  > MainController: Erzeuge UIController und übergebe Drawframe-Objekt-Referenz.");
-        new UIController(drawFrame);
+        //if ( Config.INFO_MESSAGES) System.out.println("  > MainController: Erzeuge UIController und übergebe Drawframe-Objekt-Referenz.");
+        new TicTacToeServer(2796);
+       // new UIController(drawFrame);
+
     }
 
 }
