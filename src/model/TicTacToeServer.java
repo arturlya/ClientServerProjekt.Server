@@ -110,8 +110,14 @@ public class TicTacToeServer extends Server {
                 case 2:
                     sendToAll("TEXTStarte neue Runde");
                     gameOver = false;
+                    sendToAll("RESTART");
                     createMap();
+                    System.out.println(getMapInformation());
+                    sendToAll("UPDATE"+getMapInformation());
                     firstTurn();
+                    for (int i = 0; i < 15; i++) {
+                        sendToAll("TEXT   ");
+                    }
                     if(player1turn == true){
                         sendToAll("TEXTSpieler 1 startet");
                         sendToAll("KREIS");
@@ -220,7 +226,15 @@ public class TicTacToeServer extends Server {
                 break;
             case 2:
                 numberOfClients--;
+                createMap();
+                gameOver = false;
+                restartVote = 0;
+                for (int i = 0; i < 15; i++) {
+                    sendToAll("TEXT   ");
+                }
                 sendToAll("TEXTWarte auf Spieler");
+                sendToAll("SPIELER1");
+                sendToAll("UPDATE"+getEmptyMapInformation());
         }
     }
 
@@ -262,6 +276,24 @@ public class TicTacToeServer extends Server {
         for(int i=0;i<map.length;i++){
             for(int j=0;j<map[i].length;j++){
                 mapInfo = mapInfo+i+"FIELD"+j+"FIELD"+map[i][j].getValue();
+                if(i!=map.length-1 || j!=map[i].length-1){
+                    mapInfo = mapInfo+"NEXT";
+                }
+            }
+        }
+        return mapInfo;
+    }
+
+    /**
+     * Macht das selbe wie die Methode dadrüber, bis auf, dass sie eine komplett leere Map zurückgibt.
+     *
+     * @return Aktuelles Spielfeld im String verkettet.
+     */
+    private String getEmptyMapInformation(){
+        String mapInfo = "";
+        for(int i=0;i<map.length;i++){
+            for(int j=0;j<map[i].length;j++){
+                mapInfo = mapInfo+i+"FIELD"+j+"FIELD"+0;
                 if(i!=map.length-1 || j!=map[i].length-1){
                     mapInfo = mapInfo+"NEXT";
                 }
