@@ -112,7 +112,6 @@ public class TicTacToeServer extends Server {
                     gameOver = false;
                     sendToAll("RESTART");
                     createMap();
-                    System.out.println(getMapInformation());
                     sendToAll("UPDATE"+getMapInformation());
                     firstTurn();
                     for (int i = 0; i < 15; i++) {
