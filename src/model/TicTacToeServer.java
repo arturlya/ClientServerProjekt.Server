@@ -2,6 +2,11 @@ package model;
 
 import model.abitur.netz.Server;
 
+import java.rmi.ServerError;
+import java.security.*;
+import java.security.spec.RSAPrivateKeySpec;
+import java.security.spec.RSAPublicKeySpec;
+
 /**
  * Klasse des Servers zum TicTacToe spielen.
  */
@@ -19,6 +24,8 @@ public class TicTacToeServer extends Server {
     /** Das Spielfeld, das in einem 2-Dimensionalen Array gespeichert wird*/
     private Field[][] map;
 
+    private KeyPair keyPair;
+
     /**
      * Konstruktor der Klasse TicTacToeServer.
      * Erstellt einen Server auf dem Clients TicTacToe spielen können.
@@ -34,8 +41,46 @@ public class TicTacToeServer extends Server {
         map = new Field[3][3];
         createMap();
 
+        generateKey();
     }
 
+    /**
+     * Generiert ein KeyPair mit Public- und PrivateKey.
+     */
+    private void generateKey(){
+        try {
+            KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
+            generator.initialize(1024);
+            keyPair = generator.generateKeyPair();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+
+    /**
+     * Schickt dem übergebenen Client die Bestandteile des PublicKeys aus denen er ihn wiederherstellen kann.
+     *
+     * @param ip Ip des Clients.
+     * @param port Port des Clients.
+     * @throws Exception Die Instanz der KeyFactory könnte kein bekannter Algorithmus sein.
+     */
+    private void sendPublicKeyData(String ip, int port) throws Exception{
+        KeyFactory factory = KeyFactory.getInstance("RSA");
+        send(ip,port,"PUBLIC"+factory.getKeySpec(keyPair.getPublic(), RSAPublicKeySpec.class).getModulus()+"NEXT"+factory.getKeySpec(keyPair.getPublic(),RSAPublicKeySpec.class));
+    }
+    /**
+     * Schickt dem übergebenen Client die Bestandteile des PrivateKeys aus denen er ihn wiederherstellen kann.
+     *
+     * @param ip Ip des Clients.
+     * @param port Port des Clients.
+     * @throws Exception Die Instanz der KeyFactory könnte kein bekannter Algorithmus sein.
+     */
+    private void sendPrivateKeyData(String ip,int port) throws Exception{
+        KeyFactory factory = KeyFactory.getInstance("RSA");
+        send(ip,port,"PRIVATE"+factory.getKeySpec(keyPair.getPrivate(), RSAPrivateKeySpec.class).getModulus()+"NEXT"+factory.getKeySpec(keyPair.getPrivate(),RSAPrivateKeySpec.class));
+    }
 
     /**
      * Aktion des Servers bei Beitritt eines weiteren Clients.
@@ -49,11 +94,23 @@ public class TicTacToeServer extends Server {
             case 0:
                 send(pClientIP,pClientPort,"TEXTWarte auf Spieler");
                 send(pClientIP,pClientPort,"SPIELER1");
+                try {
+                    sendPrivateKeyData(pClientIP, pClientPort);
+                    sendPublicKeyData(pClientIP,pClientPort);
+                }catch (Exception e){
+                    System.err.println(e);
+                }
                 numberOfClients++;
                 break;
             case 1:
                 numberOfClients++;
                 send(pClientIP,pClientPort,"SPIELER2");
+                try {
+                    sendPrivateKeyData(pClientIP, pClientPort);
+                    sendPublicKeyData(pClientIP,pClientPort);
+                }catch (Exception e){
+                    System.err.println(e);
+                }
                 firstTurn();
                 sendToAll("TEXTSpiel startet");
                 if(player1turn){
@@ -125,6 +182,7 @@ public class TicTacToeServer extends Server {
                         sendToAll("KREUZ");
                     }
                     restartVote = 0;
+                    sendToAll("UPDATE"+getMapInformation());
                     break;
             }
         }
