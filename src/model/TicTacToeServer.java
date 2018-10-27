@@ -2,10 +2,14 @@ package model;
 
 import model.abitur.netz.Server;
 
+import javax.crypto.Cipher;
 import java.rmi.ServerError;
 import java.security.*;
+import java.security.spec.KeySpec;
 import java.security.spec.RSAPrivateKeySpec;
 import java.security.spec.RSAPublicKeySpec;
+import java.util.Base64;
+import java.util.Random;
 
 /**
  * Klasse des Servers zum TicTacToe spielen.
@@ -24,7 +28,9 @@ public class TicTacToeServer extends Server {
     /** Das Spielfeld, das in einem 2-Dimensionalen Array gespeichert wird*/
     private Field[][] map;
 
-    private KeyPair keyPair;
+    private int prim = 0;
+
+    private int N,e,d;
 
     /**
      * Konstruktor der Klasse TicTacToeServer.
@@ -41,46 +47,64 @@ public class TicTacToeServer extends Server {
         map = new Field[3][3];
         createMap();
 
-        generateKey();
-    }
 
-    /**
-     * Generiert ein KeyPair mit Public- und PrivateKey.
-     */
-    private void generateKey(){
-        try {
-            KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
-            generator.initialize(1024);
-            keyPair = generator.generateKeyPair();
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
+        int p=0;
+        int q=0;
+        while(q==0){  //Solange ausführen, bis beide Vaiablen mit einer Zahl belegt sind
+            Primzahlen(50); //1000=Primzahl darf nicht größer als 1000 sein
+            if(!(prim==0) && !(prim==p)){
+                if(p==0){
+                    p=prim;
+                }else{
+                    q=prim;
+                }
+            }
         }
 
+        //Schritt 3: Das Primzahlprodukt (N) bilden :
+        N=p*q;
+
+        //Schritt 4: Wert der Eulerfunktion berechnen:
+        int n=(p-1)*(q-1);
+
+        //Schritt 5: Den öffentlichen Exponenten ermitteln (nötig zum codieren):
+        e=(p*q)-n;
+
+        //Schritt 6: Den privaten Exponenten ermitteln (nötig zum decodieren ):
+        d=0;
+        for(;true;d++){
+            if(((e*d)%n==1)){
+                break;
+            }
+        }
+
+        System.out.println("Oeffentliche Keys:");
+        System.out.println("N="+N);
+        System.out.println("e="+e+"\n");
+        System.out.println("Private Keys:");
+        System.out.println("N="+N);
+        System.out.println("d="+d+"\n");
     }
 
 
-    /**
-     * Schickt dem übergebenen Client die Bestandteile des PublicKeys aus denen er ihn wiederherstellen kann.
-     *
-     * @param ip Ip des Clients.
-     * @param port Port des Clients.
-     * @throws Exception Die Instanz der KeyFactory könnte kein bekannter Algorithmus sein.
-     */
-    private void sendPublicKeyData(String ip, int port) throws Exception{
-        KeyFactory factory = KeyFactory.getInstance("RSA");
-        send(ip,port,"PUBLIC"+factory.getKeySpec(keyPair.getPublic(), RSAPublicKeySpec.class).getModulus()+"NEXT"+factory.getKeySpec(keyPair.getPublic(),RSAPublicKeySpec.class));
+    public void Primzahlen(int bereich){
+        Random rand = new Random();
+        for(int i=10;i<=bereich; i++){
+            int tmp=0;
+            for(int j=2; j<10; j++){
+                if(i%j==0 && !(i==j)){
+                    tmp++;
+                }
+            }
+            if(tmp==0){
+                if((1 + Math.abs(rand.nextInt()) % 500)>480){
+                    prim=i;
+                    i=bereich;
+                }
+            }
+        }
     }
-    /**
-     * Schickt dem übergebenen Client die Bestandteile des PrivateKeys aus denen er ihn wiederherstellen kann.
-     *
-     * @param ip Ip des Clients.
-     * @param port Port des Clients.
-     * @throws Exception Die Instanz der KeyFactory könnte kein bekannter Algorithmus sein.
-     */
-    private void sendPrivateKeyData(String ip,int port) throws Exception{
-        KeyFactory factory = KeyFactory.getInstance("RSA");
-        send(ip,port,"PRIVATE"+factory.getKeySpec(keyPair.getPrivate(), RSAPrivateKeySpec.class).getModulus()+"NEXT"+factory.getKeySpec(keyPair.getPrivate(),RSAPrivateKeySpec.class));
-    }
+
 
     /**
      * Aktion des Servers bei Beitritt eines weiteren Clients.
@@ -95,8 +119,11 @@ public class TicTacToeServer extends Server {
                 send(pClientIP,pClientPort,"TEXTWarte auf Spieler");
                 send(pClientIP,pClientPort,"SPIELER1");
                 try {
-                    sendPrivateKeyData(pClientIP, pClientPort);
-                    sendPublicKeyData(pClientIP,pClientPort);
+                    //sendPrivateKeyData(pClientIP, pClientPort);
+                    //sendPublicKeyData(pClientIP,pClientPort);
+                    //send(pClientIP,pClientPort,infosPr);
+                    //send(pClientIP,pClientPort,infosPu);
+
                 }catch (Exception e){
                     System.err.println(e);
                 }
@@ -105,12 +132,7 @@ public class TicTacToeServer extends Server {
             case 1:
                 numberOfClients++;
                 send(pClientIP,pClientPort,"SPIELER2");
-                try {
-                    sendPrivateKeyData(pClientIP, pClientPort);
-                    sendPublicKeyData(pClientIP,pClientPort);
-                }catch (Exception e){
-                    System.err.println(e);
-                }
+                sendKeys(pClientIP,pClientPort);
                 firstTurn();
                 sendToAll("TEXTSpiel startet");
                 if(player1turn){
@@ -185,6 +207,12 @@ public class TicTacToeServer extends Server {
                     sendToAll("UPDATE"+getMapInformation());
                     break;
             }
+        }else if(pMessage.contains("CHAT")){
+            try {
+                sendToAll(pMessage);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
         sendToAll("UPDATE"+getMapInformation());
         calculateWinner();
@@ -244,6 +272,7 @@ public class TicTacToeServer extends Server {
             }
         }
     }
+
 
     /**
      * Prüft die Belegung des Feldes.
@@ -357,5 +386,9 @@ public class TicTacToeServer extends Server {
             }
         }
         return mapInfo;
+    }
+
+    private void sendKeys(String ip,int port){
+        send(ip,port,"KEYS"+N+"#"+e+"#"+d);
     }
 }
