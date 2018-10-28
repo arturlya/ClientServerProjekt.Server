@@ -64,6 +64,7 @@ public class TicTacToeServer extends Server {
 
         //Schritt 4: Wert der phi-Funktion berechnen:
         phi=(p-1)*(q-1);
+        System.out.println(phi);
 
         //Schritt 5: Den öffentlichen Exponenten ermitteln (nötig zum codieren):
         //e=(p*q)-phi; //Ist das richtig berechnet?
