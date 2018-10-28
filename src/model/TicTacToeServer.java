@@ -66,14 +66,32 @@ public class TicTacToeServer extends Server {
         phi=(p-1)*(q-1);
 
         //Schritt 5: Den öffentlichen Exponenten ermitteln (nötig zum codieren):
-        e=(p*q)-phi; //Ist das richtig berechnet?
-
+        //e=(p*q)-phi; //Ist das richtig berechnet?
+        e = 2;
+        while (ggT(e,phi) !=1){
+            e++;
+        }
+        System.out.println(e);
 
         publicKey.setKeys(e,N);
         System.out.println("Oeffentlicher Key:");
         System.out.println("e="+e);
         System.out.println("N="+N+"\n");
 
+    }
+
+    private int ggT(int a, int b) {
+        // Hier versuche ich Arbeitsaufwand (Rechnenzeit) zu sparen in dem ich
+        // mir die kleinste Zahl suche.
+        int h = (a > b) ? b : a;
+        // Der GGT wird hier berechnet.
+        for (int i = h; i > 1; i--) {
+            if ((a % i) == 0 && (b % i) == 0) {
+                return i;
+            }
+        }
+        // teilerfremde Zahlen haben immer den Teiler 1
+        return 1;
     }
 
 
