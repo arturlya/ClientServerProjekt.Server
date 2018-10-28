@@ -2,13 +2,7 @@ package model;
 
 import model.abitur.netz.Server;
 
-import javax.crypto.Cipher;
-import java.rmi.ServerError;
-import java.security.*;
-import java.security.spec.KeySpec;
-import java.security.spec.RSAPrivateKeySpec;
-import java.security.spec.RSAPublicKeySpec;
-import java.util.Base64;
+
 import java.util.Random;
 
 /**
@@ -30,7 +24,8 @@ public class TicTacToeServer extends Server {
 
     private int prim = 0;
 
-    private int N,e,d;
+    private int N,e,phi;
+    private Key publicKey;
 
     /**
      * Konstruktor der Klasse TicTacToeServer.
@@ -48,15 +43,18 @@ public class TicTacToeServer extends Server {
         createMap();
 
 
+        publicKey = new Key();
         int p=0;
         int q=0;
         while(q==0){  //Solange ausführen, bis beide Vaiablen mit einer Zahl belegt sind
-            Primzahlen(50); //1000=Primzahl darf nicht größer als 1000 sein
+            primzahlen(1000); //1000=Primzahl darf nicht größer als 1000 sein
             if(!(prim==0) && !(prim==p)){
                 if(p==0){
                     p=prim;
+                    System.out.println(p);//TEST
                 }else{
                     q=prim;
+                    System.out.println(q);//TEST
                 }
             }
         }
@@ -64,31 +62,23 @@ public class TicTacToeServer extends Server {
         //Schritt 3: Das Primzahlprodukt (N) bilden :
         N=p*q;
 
-        //Schritt 4: Wert der Eulerfunktion berechnen:
-        int n=(p-1)*(q-1);
+        //Schritt 4: Wert der phi-Funktion berechnen:
+        phi=(p-1)*(q-1);
 
         //Schritt 5: Den öffentlichen Exponenten ermitteln (nötig zum codieren):
-        e=(p*q)-n;
+        e=(p*q)-phi; //Ist das richtig berechnet?
 
-        //Schritt 6: Den privaten Exponenten ermitteln (nötig zum decodieren ):
-        d=0;
-        for(;true;d++){
-            if(((e*d)%n==1)){
-                break;
-            }
-        }
 
-        System.out.println("Oeffentliche Keys:");
-        System.out.println("N="+N);
-        System.out.println("e="+e+"\n");
-        System.out.println("Private Keys:");
-        System.out.println("N="+N);
-        System.out.println("d="+d+"\n");
+        publicKey.setKeys(e,N);
+        System.out.println("Oeffentlicher Key:");
+        System.out.println("e="+e);
+        System.out.println("N="+N+"\n");
+
     }
 
 
-    public void Primzahlen(int bereich){
-        Random rand = new Random();
+    public void primzahlen(int bereich){
+        Random random = new Random();
         for(int i=10;i<=bereich; i++){
             int tmp=0;
             for(int j=2; j<10; j++){
@@ -97,7 +87,7 @@ public class TicTacToeServer extends Server {
                 }
             }
             if(tmp==0){
-                if((1 + Math.abs(rand.nextInt()) % 500)>480){
+                if((1 + Math.abs(random.nextInt()) % 500)>480){
                     prim=i;
                     i=bereich;
                 }
@@ -389,6 +379,6 @@ public class TicTacToeServer extends Server {
     }
 
     private void sendKeys(String ip,int port){
-        send(ip,port,"KEYS"+N+"#"+e+"#"+d);
+        send(ip,port,"KEY"+publicKey.getKey1()+"#"+publicKey.getKey2()+"#"+phi);
     }
 }
